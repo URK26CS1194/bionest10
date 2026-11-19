@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioNest - DOM Elements</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#f5f7f1; color:#1d2b22; margin:0; }
+  header { background:#2e5a3c; color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:24px; }
+  .menu-wrap { position:relative; }
+  #menuBtn { padding:8px 14px; border:0; border-radius:4px; background:#7fb069; cursor:pointer; }
+  #menu { position:absolute; right:0; top:110%; background:#fff; color:#1d2b22; list-style:none; margin:0; padding:0; min-width:190px; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,.2); }
+  #menu li { padding:10px 14px; cursor:pointer; }
+  #menu li:hover { background:#e6efdc; }
+  .hidden { display:none; }
+  main { max-width:480px; margin:24px auto; padding:0 16px; }
+  label { display:block; margin-top:10px; font-weight:bold; }
+  input { width:100%; padding:8px; box-sizing:border-box; border:2px solid #c9d3c0; border-radius:4px; }
+  input.invalid { border-color:#c0392b; }
+  input.valid { border-color:#2e8b57; }
+  .error { color:#c0392b; font-size:13px; min-height:16px; }
+  button.primary { margin-top:14px; padding:10px 18px; background:#2e5a3c; color:#fff; border:0; border-radius:4px; cursor:pointer; }
+  #selected { margin-top:14px; font-weight:bold; }
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; }
+  .overlay.hidden { display:none; }
+  .modal { background:#fff; padding:22px; border-radius:8px; max-width:340px; text-align:center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>BioNest</h1>
+  <div class="menu-wrap">
+    <button id="menuBtn" type="button">Products &#9662;</button>
+    <ul id="menu" class="hidden">
+      <li>Compostable Mailers</li>
+      <li>Molded Fibre Trays</li>
+      <li>Food Boxes</li>
+      <li>Biodegradable Films</li>
+    </ul>
+  </div>
+</header>
+
+<main>
+  <h2>Request a free sample</h2>
+  <p id="selected">Selected product: none</p>
+  <form id="sampleForm" novalidate>
+    <label for="userName">Name</label>
+    <input id="userName" type="text" autocomplete="name">
+    <div class="error" id="nameError"></div>
+
+    <label for="userEmail">Email</label>
+    <input id="userEmail" type="email" autocomplete="email">
+    <div class="error" id="emailError"></div>
+
+    <button class="primary" type="submit">Request sample</button>
+  </form>
+</main>
+
+<div class="overlay hidden" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3 id="modalTitle">Thank you!</h3>
+    <p id="modalText"></p>
+    <button class="primary" id="closeModal" type="button">Close</button>
+  </div>
+</div>
+
+<!-- Script is at the end of body so every element already exists in the DOM -->
+<script>
+  const menuBtn = document.getElementById("menuBtn");
+  const menu = document.getElementById("menu");
+  const selected = document.getElementById("selected");
+  const form = document.getElementById("sampleForm");
+  const nameInput = document.getElementById("userName");
+  const emailInput = document.getElementById("userEmail");
+  const nameError = document.getElementById("nameError");
+  const emailError = document.getElementById("emailError");
+  const overlay = document.getElementById("overlay");
+
+  // Dropdown: toggle class
+  menuBtn.addEventListener("click", () => menu.classList.toggle("hidden"));
+  menu.querySelectorAll("li").forEach(li => {
+    li.addEventListener("click", () => {
+      selected.textContent = "Selected product: " + li.textContent;
+      menu.classList.add("hidden");
+    });
+  });
+  document.addEventListener("click", e => {
+    if (!e.target.closest(".menu-wrap")) menu.classList.add("hidden");
+  });
+
+  // Real-time validation on input
+  function checkName() {
+    const ok = nameInput.value.trim().length >= 2;
+    nameInput.className = ok ? "valid" : "invalid";
+    nameError.textContent = ok ? "" : "Enter at least 2 characters.";
+    return ok;
+  }
+  function checkEmail() {
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
+    emailInput.className = ok ? "valid" : "invalid";
+    emailError.textContent = ok ? "" : "Enter a valid email, e.g. name@company.com";
+    return ok;
+  }
+  nameInput.addEventListener("input", checkName);
+  emailInput.addEventListener("input", checkEmail);
+
+  // Submit: stop page reload, show modal
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    if (checkName() & checkEmail()) {
+      document.getElementById("modalText").textContent =
+        nameInput.value.trim() + ", we will send a BioNest sample kit to " + emailInput.value + ".";
+      overlay.classList.remove("hidden");
+      form.reset();
+      nameInput.className = emailInput.className = "";
+    }
+  });
+  document.getElementById("closeModal").addEventListener("click", () => overlay.classList.add("hidden"));
+  document.addEventListener("keydown", e => { if (e.key === "Escape") overlay.classList.add("hidden"); });
+</script>
+</body>
+</html>
